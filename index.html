@@ -1,10 +1,1104 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <title>GA計算機</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GA 計算機</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #12151c;
+      --panel: #1c2230;
+      --panel-2: #252c3d;
+      --line: #343c50;
+      --text: #e8edf7;
+      --muted: #9aa6bd;
+      --accent: #6ea8fe;
+      --accent-2: #3d7eff;
+      --good: #7ddea2;
+      --danger: #ff8b8b;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 16px 64px;
+    }
+    h1 { margin: 0 0 22px; font-size: 28px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    h2 { margin: 0 0 14px; font-size: 18px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+    input, select, button {
+      font: inherit;
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    input[type="number"] { width: 92px; }
+    input[type="text"] { min-width: 180px; }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+    }
+    button { cursor: pointer; }
+    button.primary { background: var(--accent-2); border-color: transparent; font-weight: 650; }
+    button.ghost { background: transparent; }
+    button.danger { color: var(--danger); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; }
+    .total {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      border-radius: 8px;
+    }
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 0;
+    }
+    #card-editor, #seen-editor { margin-top: 12px; }
+    .total strong { font-size: 20px; }
+    .warn { color: #ffd27a; }
+    .condition {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .expr-wrap {
+      display: flex;
+      align-items: stretch;
+      margin: 8px 0;
+    }
+    .expr-wrap .expr-wrap { margin-left: 18px; }
+    .group-not {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-right: none;
+      border-radius: 10px 0 0 10px;
+      padding: 8px 10px;
+      background: #121826;
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      user-select: none;
+    }
+    .group-not:has(input:checked) {
+      background: #3a2430;
+      color: #ffb4c0;
+      border-color: #8a4a5c;
+    }
+    .expr-group {
+      border: 1px solid var(--line);
+      border-radius: 0 10px 10px 0;
+      padding: 10px;
+      margin: 0;
+      background: #1a2233;
+      flex: 1;
+      min-width: 0;
+    }
+    .expr-wrap:has(.group-not input:checked) > .expr-group { border-color: #8a4a5c; }
+    .expr-wrap .expr-wrap > .expr-group { background: #151c2b; }
+    .expr-head, label.check {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .expr-head { margin-bottom: 8px; }
+    label.check { flex-direction: row; color: var(--text); }
+    .join-row select { width: 88px; }
+    .result {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #172033;
+      border: 1px solid var(--line);
+    }
+    .result .pct { font-size: 32px; font-weight: 700; color: var(--good); margin: 4px 0; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .empty { color: var(--muted); padding: 8px 0; }
+    td.keep, th.keep { width: 42px; text-align: center; }
+    .seen-list { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; }
+    .seen-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .seen-row input { width: 72px; }
+    .seen-name { min-width: 8em; color: var(--text); }
+    .odds-wrap { max-height: 420px; overflow: auto; margin-top: 8px; }
+    .odds td:nth-child(2) { font-weight: 650; font-variant-numeric: tabular-nums; }
+  </style>
 </head>
 <body>
-    <h1>test123</h1>
+<main>
+  <h1>GA 計算機</h1>
+
+  <section>
+    <h2>牌組構成</h2>
+    <label style="width: 100%; margin-bottom: 8px;">貼上牌表（只取 # Main Deck）
+      <textarea id="deck-import" placeholder="# Main Deck&#10;4 Card Name"></textarea>
+    </label>
+    <div class="row" style="margin-bottom: 12px;">
+      <button id="import-deck" type="button">匯入 Main Deck</button>
+    </div>
+    <p id="import-note" class="hint"></p>
+    <div id="card-summary" class="total summary-bar">
+      <span id="card-summary-text">還沒有具名卡片</span>
+      <button id="edit-cards" type="button">編輯</button>
+    </div>
+    <div id="card-editor" hidden>
+      <div class="summary-bar" style="margin-bottom: 12px;">
+        <span class="hint">勾選要留下的卡</span>
+        <span class="row">
+          <button id="keep-cards" type="button">只留勾選的卡</button>
+          <button class="primary" id="save-cards" type="button">儲存</button>
+        </span>
+      </div>
+      <div class="row" style="margin-bottom: 12px;">
+        <label>卡片名稱
+          <input id="card-name" type="text" placeholder="例如：關鍵卡" maxlength="120">
+        </label>
+        <label>張數
+          <input id="card-count" type="number" min="1" value="1">
+        </label>
+        <button class="primary" id="add-card" type="button">新增卡片</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th class="keep">留</th><th>卡片</th><th>張數</th><th></th></tr>
+        </thead>
+        <tbody id="card-list"></tbody>
+      </table>
+      <p id="card-empty" class="empty">還沒有具名卡片。其餘張數會當成其他卡片。</p>
+      <p id="keep-note" class="hint"></p>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <label>牌組張數
+        <input id="deck-size" type="number" min="1" value="60">
+      </label>
+    </div>
+    <div class="total"><span id="deck-note" class="hint"></span></div>
+  </section>
+
+  <section>
+    <h2>抽牌機率</h2>
+    <div id="seen-summary" class="total summary-bar">
+      <span id="seen-summary-text">沒有已出現</span>
+      <button id="edit-seen" type="button">設定</button>
+    </div>
+    <div id="seen-editor" hidden>
+      <div class="summary-bar" style="margin-bottom: 12px;">
+        <span class="hint">已經出現</span>
+        <span class="row">
+          <button class="ghost" id="clear-seen" type="button">清除已出現</button>
+          <button class="primary" id="save-seen" type="button">儲存</button>
+        </span>
+      </div>
+      <div id="seen-list" class="seen-list"></div>
+      <p id="seen-note" class="hint"></p>
+    </div>
+    <div class="row" style="margin: 12px 0;">
+      <label>算到抽幾張
+        <input id="draw-n" type="number" min="1" value="5">
+      </label>
+    </div>
+    <div id="conditions"></div>
+    <button class="primary" id="calc" type="button">計算機率</button>
+    <div id="result" class="result" hidden></div>
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = "ga-calculator-v1";
+
+const state = loadState();
+let editingCards = false;
+let editingSeen = false;
+
+const els = {
+  cardSummary: document.getElementById("card-summary"),
+  cardSummaryText: document.getElementById("card-summary-text"),
+  editCards: document.getElementById("edit-cards"),
+  cardEditor: document.getElementById("card-editor"),
+  saveCards: document.getElementById("save-cards"),
+  keepCards: document.getElementById("keep-cards"),
+  keepNote: document.getElementById("keep-note"),
+  cardName: document.getElementById("card-name"),
+  cardCount: document.getElementById("card-count"),
+  addCard: document.getElementById("add-card"),
+  cardList: document.getElementById("card-list"),
+  cardEmpty: document.getElementById("card-empty"),
+  deckImport: document.getElementById("deck-import"),
+  importDeck: document.getElementById("import-deck"),
+  importNote: document.getElementById("import-note"),
+  deckSize: document.getElementById("deck-size"),
+  deckNote: document.getElementById("deck-note"),
+  drawN: document.getElementById("draw-n"),
+  seenSummary: document.getElementById("seen-summary"),
+  seenSummaryText: document.getElementById("seen-summary-text"),
+  editSeen: document.getElementById("edit-seen"),
+  seenEditor: document.getElementById("seen-editor"),
+  saveSeen: document.getElementById("save-seen"),
+  seenList: document.getElementById("seen-list"),
+  seenNote: document.getElementById("seen-note"),
+  clearSeen: document.getElementById("clear-seen"),
+  conditions: document.getElementById("conditions"),
+  calc: document.getElementById("calc"),
+  result: document.getElementById("result"),
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (!Number.isFinite(data.deckSize) || data.deckSize < 1) data.deckSize = 60;
+      data.seen = normalizeSeen(data.seen);
+      data.expr = normalizeExpr(data);
+      delete data.scenarios;
+      delete data.conditions;
+      return data;
+    }
+  } catch (_) {}
+  return {
+    cards: [
+      { id: 1, name: "關鍵卡", count: 4 },
+    ],
+    deckSize: 60,
+    drawN: 5,
+    nextId: 2,
+    seen: { byId: {}, other: 0 },
+    expr: {
+      type: "group",
+      op: "or",
+      not: false,
+      children: [{ type: "cond", cardId: 1, op: ">=", count: 1, not: false }],
+    },
+  };
+}
+
+function normalizeSeen(seen) {
+  const byId = {};
+  if (seen && typeof seen.byId === "object" && seen.byId) {
+    for (const [id, value] of Object.entries(seen.byId)) {
+      const n = Math.floor(Number(value));
+      if (Number.isFinite(n) && n > 0) byId[String(id)] = n;
+    }
+  }
+  const other = Math.floor(Number(seen && seen.other));
+  return { byId, other: Number.isFinite(other) && other > 0 ? other : 0 };
+}
+
+function seenCount(id) {
+  return readInt(state.seen.byId[String(id)], 0);
+}
+
+function normalizeCond(cond) {
+  return {
+    cardId: Number(cond.cardId) || 0,
+    op: cond.op === "=" || cond.op === "<=" ? cond.op : ">=",
+    count: Number.isFinite(Number(cond.count)) ? Number(cond.count) : 1,
+    not: Boolean(cond.not),
+  };
+}
+
+function normalizeExpr(data) {
+  if (data.expr && data.expr.type === "group") return normalizeNode(data.expr);
+  const scenarios = Array.isArray(data.scenarios)
+    ? data.scenarios
+    : [{ conditions: Array.isArray(data.conditions) ? data.conditions : [] }];
+  return normalizeNode({
+    type: "group",
+    op: "or",
+    not: false,
+    children: scenarios.map((scenario) => ({
+      type: "group",
+      op: "and",
+      not: false,
+      children: (scenario.conditions || []).map((cond) => ({ type: "cond", ...normalizeCond(cond) })),
+    })).filter((group) => group.children.length > 0),
+  });
+}
+
+function joinOf(value) {
+  return value === "or" || value === "xor" ? value : "and";
+}
+
+function normalizeNode(node) {
+  if (!node || node.type === "cond" || node.cardId != null && !node.children) {
+    return { type: "cond", ...normalizeCond(node || {}), join: joinOf(node && node.join) };
+  }
+  return {
+    type: "group",
+    not: Boolean(node.not),
+    join: joinOf(node.join),
+    children: (node.children || []).map(normalizeNode),
+  };
+}
+
+function currentCards() {
+  return editingCards ? readCardsFromDom() : state.cards;
+}
+
+function saveState() {
+  if (editingCards) state.cards = readCardsFromDom();
+  state.deckSize = Math.max(1, readInt(els.deckSize.value, 60));
+  state.drawN = readInt(els.drawN.value, 1);
+  state.expr = readExprFromDom();
+  delete state.scenarios;
+  delete state.conditions;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function readInt(value, fallback) {
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function readCardsFromDom() {
+  return [...els.cardList.querySelectorAll("tr")].map((row) => ({
+    id: Number(row.dataset.id),
+    name: row.querySelector(".name").value.trim(),
+    count: Math.max(1, readInt(row.querySelector(".count").value, 1)),
+  }));
+}
+
+function readCond(row) {
+  return {
+    type: "cond",
+    cardId: Number(row.querySelector(".card").value),
+    op: row.querySelector(".op").value,
+    count: Math.max(0, readInt(row.querySelector(".count").value, 1)),
+    not: row.querySelector(".not").checked,
+  };
+}
+
+function readGroup(el) {
+  const children = [];
+  let pendingJoin = "and";
+  for (const child of el.querySelector(":scope > .expr-children").children) {
+    if (child.classList.contains("join-row")) {
+      pendingJoin = joinOf(child.querySelector("select").value);
+      continue;
+    }
+    let node = null;
+    if (child.classList.contains("expr-wrap")) node = readGroup(child.querySelector(":scope > .expr-group"));
+    else if (child.classList.contains("condition")) node = readCond(child);
+    if (!node) continue;
+    node.join = pendingJoin;
+    children.push(node);
+  }
+  const notBox = el.parentElement.querySelector(":scope > .group-not input");
+  return { type: "group", not: Boolean(notBox && notBox.checked), children };
+}
+
+function readExprFromDom() {
+  const root = els.conditions.querySelector(":scope > .expr-wrap > .expr-group");
+  if (!root) return { type: "group", not: false, children: [] };
+  return readGroup(root);
+}
+
+function pruneExpr(node) {
+  if (node.type === "cond") return node;
+  const children = [];
+  for (const child of node.children) {
+    const next = pruneExpr(child);
+    if (!next || next.type === "group" && next.children.length === 0) continue;
+    children.push(next);
+  }
+  return { ...node, children };
+}
+
+function nodeAt(expr, path) {
+  return path.reduce((node, index) => node.children[index], expr);
+}
+
+function collectConds(node, out = []) {
+  if (node.type === "cond") out.push(node);
+  else node.children.forEach((child) => collectConds(child, out));
+  return out;
+}
+
+function stripCard(node, cardId) {
+  if (node.type === "cond") return node.cardId === cardId ? null : node;
+  return {
+    ...node,
+    children: node.children.map((child) => stripCard(child, cardId)).filter(Boolean),
+  };
+}
+
+function remapExpr(node, lookup) {
+  if (node.type === "cond") {
+    const id = lookup.get(node.cardId);
+    return id ? { ...node, cardId: id } : null;
+  }
+  return {
+    ...node,
+    children: node.children.map((child) => remapExpr(child, lookup)).filter(Boolean),
+  };
+}
+
+function parseMainDeck(text) {
+  let inMain = false;
+  let sawMain = false;
+  const cards = [];
+  const skipped = [];
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const header = line.match(/^#\s*(.+)$/);
+    if (header) {
+      inMain = header[1].trim().toLowerCase() === "main deck";
+      if (inMain) sawMain = true;
+      continue;
+    }
+    if (!inMain) continue;
+    const match = line.match(/^(\d+)\s+(.+)$/);
+    if (!match) {
+      skipped.push(line);
+      continue;
+    }
+    const count = Number.parseInt(match[1], 10);
+    const name = match[2].trim();
+    if (count < 1 || !name) {
+      skipped.push(line);
+      continue;
+    }
+    const existing = cards.find((card) => card.name === name);
+    if (existing) existing.count += count;
+    else cards.push({ name, count });
+  }
+  if (!sawMain) return { error: "找不到 # Main Deck。" };
+  if (cards.length === 0) return { error: "# Main Deck 裡面沒有卡片。" };
+  return { cards, skipped };
+}
+
+function namedCount(cards) {
+  return cards.reduce((sum, card) => sum + Math.max(0, card.count), 0);
+}
+
+function otherCount(cards, deckSize) {
+  return deckSize - namedCount(cards);
+}
+
+function binom(n, k) {
+  if (k < 0 || n < 0 || k > n) return 0n;
+  if (k === 0 || k === n) return 1n;
+  k = Math.min(k, n - k);
+  let result = 1n;
+  for (let i = 1; i <= k; i++) {
+    result = result * BigInt(n - k + i) / BigInt(i);
+  }
+  return result;
+}
+
+function formatDecimal(numer, denom, digits) {
+  if (denom === 0n) return "—";
+  const negative = numer < 0n;
+  const a = negative ? -numer : numer;
+  const scale = 10n ** BigInt(digits);
+  const scaled = a * scale / denom;
+  const whole = scaled / scale;
+  let frac = (scaled % scale).toString().padStart(digits, "0").replace(/0+$/, "");
+  const text = frac ? `${whole}.${frac}` : `${whole}`;
+  return negative ? `-${text}` : text;
+}
+
+function opLabel(op) {
+  if (op === "=") return "=";
+  if (op === "<=") return "<=";
+  return ">=";
+}
+
+function conditionHolds(cond, value) {
+  let ok;
+  if (cond.op === "=") ok = value === cond.count;
+  else if (cond.op === "<=") ok = value <= cond.count;
+  else ok = value >= cond.count;
+  return cond.not ? !ok : ok;
+}
+
+function withIndexes(node, indexById) {
+  if (node.type === "cond") return { ...node, index: indexById.get(node.cardId) };
+  return { ...node, children: node.children.map((child) => withIndexes(child, indexById)) };
+}
+
+function evalExpr(node, drawn) {
+  if (node.type === "cond") return conditionHolds(node, drawn[node.index]);
+  if (!node.children.length) return false;
+  let ok = evalExpr(node.children[0], drawn);
+  for (let i = 1; i < node.children.length; i++) {
+    const value = evalExpr(node.children[i], drawn);
+    const join = node.children[i].join;
+    if (join === "or") ok = ok || value;
+    else if (join === "xor") ok = ok !== value;
+    else ok = ok && value;
+  }
+  return node.not ? !ok : ok;
+}
+
+function calculateSeries(cards, deckSize, maxN, expr) {
+  const named = cards.filter((card) => card.name);
+  const others = otherCount(named, deckSize);
+  const total = deckSize;
+  if (total <= 0) return { error: "剩下的牌庫是空的。" };
+  if (others < 0) return { error: "具名卡片張數超過牌組張數。" };
+  if (maxN < 1) return { error: "至少要算抽 1 張。" };
+  if (!expr || collectConds(expr).length === 0) return { error: "請加一個條件。" };
+
+  const used = new Map();
+  for (const cond of collectConds(expr)) {
+    const card = named.find((item) => item.id === cond.cardId);
+    if (!card) return { error: "有條件指向已刪除的卡片。" };
+    if (!used.has(card.id)) used.set(card.id, card);
+  }
+  const groups = [...used.values()];
+  const groupCounts = groups.map((card) => Math.max(0, card.count));
+  const rest = total - groupCounts.reduce((sum, n) => sum + n, 0);
+  if (rest < 0) return { error: "具名卡片張數加總超過牌組。" };
+  const indexById = new Map(groups.map((card, index) => [card.id, index]));
+  const indexed = withIndexes(expr, indexById);
+  const sizes = [...groupCounts, rest];
+  const assignment = new Array(sizes.length).fill(0);
+  const limit = Math.min(maxN, total);
+  const favorable = Array.from({ length: limit + 1 }, () => 0n);
+  const waysCache = new Map();
+  const choose = (n, k) => {
+    const key = `${n},${k}`;
+    if (waysCache.has(key)) return waysCache.get(key);
+    const value = binom(n, k);
+    waysCache.set(key, value);
+    return value;
+  };
+
+  function walk(groupIndex, taken) {
+    if (taken > limit) return;
+    if (groupIndex === sizes.length) {
+      if (taken >= 1 && evalExpr(indexed, assignment)) {
+        let ways = 1n;
+        for (let i = 0; i < sizes.length; i++) ways *= choose(sizes[i], assignment[i]);
+        favorable[taken] += ways;
+      }
+      return;
+    }
+    const max = Math.min(sizes[groupIndex], limit - taken);
+    for (let take = 0; take <= max; take++) {
+      assignment[groupIndex] = take;
+      walk(groupIndex + 1, taken + take);
+    }
+  }
+
+  walk(0, 0);
+  const rows = [];
+  for (let n = 1; n <= limit; n++) rows.push({ n, favorable: favorable[n], space: choose(total, n) });
+  return { rows, total, limit, requested: maxN };
+}
+
+function remainingDeck(cards, deckSize) {
+  const byId = {};
+  let appearedNamed = 0;
+  const next = cards.map((card) => {
+    const seen = Math.max(0, Math.min(Math.max(0, card.count), seenCount(card.id)));
+    if (seen) byId[String(card.id)] = seen;
+    appearedNamed += seen;
+    return { ...card, count: Math.max(0, card.count) - seen };
+  });
+  const othersAvail = Math.max(0, deckSize - namedCount(cards));
+  const other = Math.max(0, Math.min(othersAvail, readInt(state.seen.other, 0)));
+  state.seen = { byId, other };
+  return { cards: next, deckSize: deckSize - appearedNamed - other };
+}
+
+function renderCards() {
+  const named = namedCount(state.cards);
+  const kinds = state.cards.filter((card) => card.name).length;
+  els.cardSummaryText.textContent = kinds
+    ? `${kinds} 種卡片，共 ${named} 張`
+    : "還沒有具名卡片";
+  els.cardSummary.hidden = editingCards;
+  els.cardEditor.hidden = !editingCards;
+  els.cardList.innerHTML = "";
+  if (!editingCards) return;
+  for (const card of state.cards) {
+    const row = document.createElement("tr");
+    row.dataset.id = String(card.id);
+    row.innerHTML = `
+      <td class="keep"><input class="keep" type="checkbox" aria-label="留下 ${escapeAttr(card.name)}"></td>
+      <td><input class="name" type="text" value="${escapeAttr(card.name)}" maxlength="120"></td>
+      <td><input class="count" type="number" min="1" value="${card.count}"></td>
+      <td><button class="danger ghost remove" type="button">刪除</button></td>
+    `;
+    row.querySelector(".remove").addEventListener("click", () => {
+      state.cards = readCardsFromDom().filter((item) => item.id !== card.id);
+      state.expr = stripCard(readExprFromDom(), card.id);
+      delete state.seen.byId[String(card.id)];
+      renderCards();
+      renderSeen();
+      renderExpr(state.expr);
+      refreshTotal();
+      saveState();
+    });
+    row.querySelector(".name").addEventListener("change", () => {
+      renderExpr();
+      saveState();
+    });
+    row.querySelector(".count").addEventListener("change", () => {
+      refreshTotal();
+      saveState();
+    });
+    els.cardList.appendChild(row);
+  }
+  els.cardEmpty.hidden = state.cards.length > 0;
+}
+
+function labelCards() {
+  return currentCards().filter((card) => card.name).map((card) => {
+    const seen = Math.min(Math.max(0, card.count), seenCount(card.id));
+    return { ...card, count: Math.max(0, card.count) - seen, seen };
+  });
+}
+
+function renderExpr(expr) {
+  const cards = labelCards();
+  const tree = expr || readExprFromDom();
+  els.conditions.innerHTML = "";
+  els.conditions.appendChild(renderGroup(tree, [], true, cards));
+}
+
+function renderGroup(node, path, isRoot, cards) {
+  const wrap = document.createElement("div");
+  wrap.className = "expr-wrap";
+  const notLabel = document.createElement("label");
+  notLabel.className = "group-not";
+  notLabel.innerHTML = `<input type="checkbox" ${node.not ? "checked" : ""}>NOT`;
+  const block = document.createElement("div");
+  block.className = "expr-group";
+  const head = document.createElement("div");
+  head.className = "expr-head";
+  head.innerHTML = `
+    <button class="ghost add-cond" type="button">新增條件</button>
+    <button class="ghost add-group" type="button">新增群組</button>
+    ${isRoot ? `<button class="danger ghost clear-expr" type="button">清除條件</button>` : `<button class="danger ghost remove-group" type="button">刪除</button>`}
+  `;
+  block.appendChild(head);
+  const children = document.createElement("div");
+  children.className = "expr-children";
+  if (!node.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "這一層還沒有內容。";
+    children.appendChild(empty);
+  }
+  node.children.forEach((child, index) => {
+    if (index > 0) children.appendChild(renderJoin(child.join));
+    if (child.type === "group") {
+      children.appendChild(renderGroup(child, path.concat(index), false, cards));
+      return;
+    }
+    children.appendChild(renderCond(child, path.concat(index), cards));
+  });
+  block.appendChild(children);
+  head.querySelector(".add-cond").addEventListener("click", () => {
+    const next = readExprFromDom();
+    nodeAt(next, path).children.push({
+      type: "cond",
+      cardId: cards[0] ? cards[0].id : 0,
+      op: ">=",
+      count: 1,
+      not: false,
+      join: "and",
+    });
+    renderExpr(next);
+    saveState();
+  });
+  head.querySelector(".add-group").addEventListener("click", () => {
+    const next = readExprFromDom();
+    const parent = nodeAt(next, path);
+    parent.children.push({
+      type: "group",
+      join: "and",
+      not: false,
+      children: [],
+    });
+    renderExpr(next);
+    saveState();
+  });
+  const remove = head.querySelector(".remove-group");
+  if (remove) {
+    remove.addEventListener("click", () => {
+      const next = readExprFromDom();
+      const parent = nodeAt(next, path.slice(0, -1));
+      parent.children.splice(path[path.length - 1], 1);
+      renderExpr(next);
+      saveState();
+    });
+  }
+  const clear = head.querySelector(".clear-expr");
+  if (clear) {
+    clear.addEventListener("click", () => {
+      const next = { type: "group", not: false, children: [] };
+      renderExpr(next);
+      saveState();
+    });
+  }
+  wrap.append(notLabel, block);
+  return wrap;
+}
+
+function renderCond(cond, path, cards) {
+  const row = document.createElement("div");
+  row.className = "condition";
+  const options = cards.map((card) => {
+    const selected = card.id === cond.cardId ? "selected" : "";
+    const countText = card.seen > 0 ? `剩 ${card.count}` : String(card.count);
+    return `<option value="${card.id}" ${selected}>${escapeHtml(card.name)}（${countText}）</option>`;
+  }).join("");
+  row.innerHTML = `
+    <label class="check"><input class="not" type="checkbox" ${cond.not ? "checked" : ""}>NOT</label>
+    <select class="card">${options || `<option value="">沒有卡片</option>`}</select>
+    <select class="op">
+      <option value=">=" ${cond.op === ">=" ? "selected" : ""}>&gt;=</option>
+      <option value="=" ${cond.op === "=" ? "selected" : ""}>=</option>
+      <option value="<=" ${cond.op === "<=" ? "selected" : ""}>&lt;=</option>
+    </select>
+    <input class="count" type="number" min="0" value="${cond.count}">
+    <span class="hint">張</span>
+    <button class="danger ghost remove" type="button">刪除</button>
+  `;
+  row.querySelector(".remove").addEventListener("click", () => {
+    const next = readExprFromDom();
+    const parent = nodeAt(next, path.slice(0, -1));
+    parent.children.splice(path[path.length - 1], 1);
+    renderExpr(next);
+    saveState();
+  });
+  return row;
+}
+
+function renderJoin(join) {
+  const row = document.createElement("div");
+  row.className = "join-row";
+  const value = joinOf(join);
+  row.innerHTML = `<select aria-label="連接">
+    <option value="and" ${value === "and" ? "selected" : ""}>AND</option>
+    <option value="or" ${value === "or" ? "selected" : ""}>OR</option>
+    <option value="xor" ${value === "xor" ? "selected" : ""}>XOR</option>
+  </select>`;
+  return row;
+}
+
+function describeExpr(node, cards, isRoot = false) {
+  if (node.type === "cond") {
+    const card = cards.find((item) => item.id === node.cardId);
+    const text = `${card ? card.name : "未知卡"} ${opLabel(node.op)} ${node.count} 張`;
+    return node.not ? `NOT(${text})` : text;
+  }
+  if (!node.children.length) return isRoot && !node.not ? "空" : (node.not ? "NOT(空)" : "(空)");
+  let inner = describeExpr(node.children[0], cards);
+  for (let i = 1; i < node.children.length; i++) {
+    const join = node.children[i].join === "or" ? " OR " : node.children[i].join === "xor" ? " XOR " : " AND ";
+    const child = node.children[i];
+    inner += join + (child.type === "group" ? describeExpr(child, cards) : describeExpr(child, cards));
+  }
+  if (isRoot && !node.not) return inner;
+  return node.not ? `NOT(${inner})` : `(${inner})`;
+}
+
+function refreshTotal() {
+  const cards = currentCards();
+  const deckSize = readInt(els.deckSize.value, 60);
+  const named = namedCount(cards);
+  const others = deckSize - named;
+  els.deckNote.textContent = others < 0
+    ? `具名 ${named} 張，已超過牌組 ${deckSize} 張`
+    : `具名 ${named} 張，其他 ${others} 張`;
+  els.deckNote.className = others < 0 ? "warn" : "hint";
+}
+
+function addCard() {
+  const name = els.cardName.value.trim();
+  const count = readInt(els.cardCount.value, 1);
+  if (!name) {
+    els.cardName.focus();
+    return;
+  }
+  if (count < 1) return;
+  state.cards = currentCards();
+  const existing = state.cards.find((card) => card.name === name);
+  if (existing) {
+    existing.count += count;
+  } else {
+    state.cards.push({ id: state.nextId++, name, count });
+  }
+  els.cardName.value = "";
+  els.cardCount.value = "1";
+  renderCards();
+  renderSeen();
+  renderExpr();
+  refreshTotal();
+  saveState();
+  els.cardName.focus();
+}
+
+function keepCheckedCards() {
+  const cards = readCardsFromDom();
+  const checked = new Set(
+    [...els.cardList.querySelectorAll("tr")]
+      .filter((row) => row.querySelector("input.keep").checked)
+      .map((row) => Number(row.dataset.id)),
+  );
+  if (checked.size === 0) {
+    els.keepNote.className = "warn";
+    els.keepNote.textContent = "先勾要留下的卡。";
+    return;
+  }
+  const removed = cards.filter((card) => !checked.has(card.id));
+  if (removed.length === 0) {
+    els.keepNote.className = "hint";
+    els.keepNote.textContent = "勾選的卡都留下了。";
+    return;
+  }
+  state.cards = cards.filter((card) => checked.has(card.id));
+  let expr = readExprFromDom();
+  for (const card of removed) {
+    expr = stripCard(expr, card.id);
+    delete state.seen.byId[String(card.id)];
+  }
+  state.expr = pruneExpr(expr);
+  const removedCopies = namedCount(removed);
+  els.keepNote.className = "hint";
+  els.keepNote.textContent = `已拿掉 ${removed.length} 種、${removedCopies} 張，這些改成其他卡。`;
+  renderCards();
+  renderSeen();
+  renderExpr(state.expr);
+  refreshTotal();
+  saveState();
+}
+
+function renderSeen() {
+  const cards = state.cards.filter((card) => card.name && card.count > 0);
+  const deckSize = Math.max(1, readInt(els.deckSize.value, state.deckSize || 60));
+  const others = Math.max(0, deckSize - namedCount(cards));
+  state.seen = normalizeSeen(state.seen);
+  const byId = {};
+  for (const card of cards) {
+    const seen = Math.min(card.count, seenCount(card.id));
+    if (seen) byId[String(card.id)] = seen;
+  }
+  const other = Math.min(others, readInt(state.seen.other, 0));
+  state.seen = { byId, other };
+  els.seenList.innerHTML = "";
+  const addRow = (name, max, value, apply) => {
+    const row = document.createElement("div");
+    row.className = "seen-row";
+    row.innerHTML = `
+      <span class="seen-name">${escapeHtml(name)}</span>
+      <input type="number" min="0" max="${max}" value="${value}" aria-label="${escapeAttr(name)}已出現">
+      <span class="hint">/ ${max}</span>
+    `;
+    row.querySelector("input").addEventListener("change", () => {
+      apply(Math.max(0, Math.min(max, readInt(row.querySelector("input").value, 0))));
+      renderSeen();
+      renderExpr();
+      saveState();
+    });
+    els.seenList.appendChild(row);
+  };
+  els.seenSummary.hidden = editingSeen;
+  els.seenEditor.hidden = !editingSeen;
+  if (cards.length === 0 && others === 0) {
+    els.seenSummaryText.textContent = "還沒有牌組";
+    els.seenNote.textContent = "還沒有牌組。";
+    return;
+  }
+  for (const card of cards) addRow(card.name, card.count, seenCount(card.id), (n) => {
+    if (n) state.seen.byId[String(card.id)] = n;
+    else delete state.seen.byId[String(card.id)];
+  });
+  addRow("其他卡", others, other, (n) => {
+    state.seen.other = n;
+  });
+  const remaining = remainingDeck(cards, deckSize);
+  const appeared = cards.some((card) => seenCount(card.id) > 0) || other > 0;
+  if (!appeared) {
+    els.seenSummaryText.textContent = "沒有已出現";
+    els.seenNote.textContent = `牌組 ${deckSize} 張`;
+    return;
+  }
+  const bits = remaining.cards.filter((card) => card.name).map((card) => `${card.name} ${card.count}`);
+  bits.push(`其他 ${Math.max(0, remaining.deckSize - namedCount(remaining.cards))}`);
+  const detail = cards.length <= 8 ? `（${bits.join("、")}）` : "";
+  const summary = `剩下 ${remaining.deckSize} 張${detail}`;
+  els.seenSummaryText.textContent = summary;
+  els.seenNote.textContent = summary;
+}
+
+function openSeen() {
+  editingSeen = true;
+  renderSeen();
+}
+
+function closeSeen() {
+  editingSeen = false;
+  renderSeen();
+  saveState();
+}
+
+function showResult(payload) {
+  els.result.hidden = false;
+  if (payload.error) {
+    els.result.innerHTML = `<div class="warn">${escapeHtml(payload.error)}</div>`;
+    return;
+  }
+  const cards = labelCards();
+  const expr = readExprFromDom();
+  const cap = payload.requested > payload.limit ? `牌庫只剩 ${payload.total} 張，所以只算到抽 ${payload.limit} 張。` : "";
+  const rows = payload.rows.map((row) => {
+    const percent = `${formatDecimal(row.favorable * 100n, row.space, 4)}%`;
+    return `<tr><td>抽 ${row.n} 張</td><td>${percent}</td></tr>`;
+  }).join("");
+  els.result.innerHTML = `
+    <div class="hint">${escapeHtml(els.seenNote.textContent)} ${escapeHtml(describeExpr(expr, cards, true))}</div>
+    ${cap ? `<div class="hint">${escapeHtml(cap)}</div>` : ""}
+    <div class="odds-wrap">
+      <table class="odds">
+        <thead><tr><th>接下來</th><th>機率</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[ch]);
+}
+
+function escapeAttr(text) {
+  return escapeHtml(text);
+}
+
+function applyImportedDeck(parsed) {
+  const oldCards = currentCards();
+  const ids = (state.cards || []).map((card) => card.id);
+  if (!Number.isInteger(state.nextId)) state.nextId = Math.max(0, ...ids) + 1;
+  const nameToId = new Map();
+  state.cards = parsed.cards.map((card) => {
+    const id = state.nextId++;
+    nameToId.set(card.name, id);
+    return { id, name: card.name, count: card.count };
+  });
+  const oldName = new Map(oldCards.map((card) => [card.id, card.name]));
+  const lookup = new Map();
+  for (const [oldId, name] of oldName) {
+    const id = nameToId.get(name);
+    if (id) lookup.set(oldId, id);
+  }
+  state.expr = remapExpr(readExprFromDom(), lookup);
+  delete state.scenarios;
+  state.deckSize = namedCount(state.cards);
+  els.deckSize.value = String(state.deckSize);
+  state.seen = { byId: {}, other: 0 };
+  editingCards = true;
+  renderCards();
+  renderSeen();
+  renderExpr(state.expr);
+  refreshTotal();
+  saveState();
+  const skipped = parsed.skipped.length ? `，略過 ${parsed.skipped.length} 行` : "";
+  els.importNote.className = "hint";
+  els.importNote.textContent = `已匯入 Main Deck，共 ${state.cards.length} 種、${state.deckSize} 張${skipped}。`;
+}
+
+function openCardEditor() {
+  editingCards = true;
+  renderCards();
+}
+
+function closeCardEditor() {
+  state.cards = readCardsFromDom();
+  editingCards = false;
+  renderCards();
+  renderSeen();
+  renderExpr();
+  refreshTotal();
+  saveState();
+}
+
+els.editCards.addEventListener("click", openCardEditor);
+els.saveCards.addEventListener("click", closeCardEditor);
+els.keepCards.addEventListener("click", keepCheckedCards);
+els.editSeen.addEventListener("click", openSeen);
+els.saveSeen.addEventListener("click", closeSeen);
+els.clearSeen.addEventListener("click", () => {
+  state.seen = { byId: {}, other: 0 };
+  renderSeen();
+  renderExpr();
+  saveState();
+});
+els.importDeck.addEventListener("click", () => {
+  const parsed = parseMainDeck(els.deckImport.value);
+  if (parsed.error) {
+    els.importNote.className = "warn";
+    els.importNote.textContent = parsed.error;
+    return;
+  }
+  applyImportedDeck(parsed);
+});
+els.addCard.addEventListener("click", addCard);
+els.cardName.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") addCard();
+});
+els.deckSize.addEventListener("input", () => {
+  refreshTotal();
+  renderSeen();
+  saveState();
+});
+els.drawN.addEventListener("change", saveState);
+els.calc.addEventListener("click", () => {
+  const expr = pruneExpr(readExprFromDom());
+  renderExpr(expr);
+  saveState();
+  const remaining = remainingDeck(state.cards, state.deckSize);
+  renderSeen();
+  const maxN = readInt(els.drawN.value, 1);
+  showResult(calculateSeries(remaining.cards, remaining.deckSize, maxN, expr));
+});
+
+els.deckSize.value = String(state.deckSize);
+els.drawN.value = String(state.drawN);
+renderCards();
+renderSeen();
+renderExpr(state.expr);
+refreshTotal();
+</script>
 </body>
 </html>
